@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Vaults list</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/vaults_list.css') }}">
+        <script src="{{ url_for('static', filename='js/vaults_list.js') }}"></script>
+    </head>
+
+
+    <body>
+
+        <div class="background-image" style="background: url('{{ url_for("static", filename="images/5.jpg") }}') no-repeat center;"></div>
+
+        <div class="top-bar">
+            <div id="animated2" style="background: url('{{ url_for("static", filename="images/logo.png") }}') no-repeat center; width: 100%; height: 100%; background-size: 10%; filter: brightness(1.2) saturate(1.2);"></div>
+        </div>
+
+        <div class="container">
+            
+           
+            <h2 >Vaults List</h2>
+
+            <div class="collecton_add">
+                <i class="create_import" onclick="openModal('{{ collection }}')" title="Create or import a new vault">&#43;</i>
+            </div>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="flash-message">
+                        {% for message in messages %}
+                            {{ message }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}   
+
+            <div id="modal-{{ collection }}" class="modal">
+                <div class="modal-content">
+                    <button class="close" style="padding: 6px 10px; margin-top: -2px;" onclick="closeModal('{{ collection }}')">Close</button>
+                    <form action="{{ url_for('create_or_import_collection') }}" method="POST" enctype="multipart/form-data">
+                        <label for="collection_name" style="font-size:15px;">Vault name</label>
+                        <input type="text" style="margin-bottom: 10px;" id="collection_name" placeholder="Enter the name" name="collection_name" required>
+                    
+                        <label for="action" style="font-size:14px; margin-bottom: -10px;" >Choose action: </label>
+
+                        <select name="action" id="action" style="border: 1.5px solid #ccc;" required>
+                            <option value="create">Create new vault</option>
+                            <option value="import">Import vault</option>
+                        </select>
+                        
+                        <div id="import_file_div" style="display:none; ">
+                            <input type="password" style="margin-top: 10px; margin-bottom: 10px;" id="collection_password" placeholder="Enter the password" name="collection_password">
+                            <label for="import_file" style="font-size:14px;margin-top: 20px;">Select file to import (.json format)</label>
+                            <input type="file" id="import_file" style="border:none; " name="import_file">
+                        </div>
+
+                        <button type="submit" style="border: 2px solid #ccc; margin-top: 30px;">Confirm</button>
+                    </form>
+
+                    <script>
+                        document.getElementById('action').addEventListener('change', function() {
+                            if (this.value == 'import') {
+                                document.getElementById('import_file_div').style.display = 'block';
+                            } else {
+                                document.getElementById('import_file_div').style.display = 'none';
+                            }
+                        });
+                    </script>
+                    
+                </div>
+            </div>
+
+
+            {% if user_collections %}
+                <ul>
+                    {% for collection in user_collections %}
+                        {% set collection_name = collection.split('_')[1] %}
+                        <li class="credential-item" >
+                        <a class="title" href="{{ url_for('vault_view', collection_name=collection) }}">{{ collection_name }}</a>
+                            <div class="actions">
+                                <i class="export" onclick="openModal('{{ collection }}')" title="Export vault">&#128240;</i>
+                                <i class="delete" onclick="confirmDelete('{{ url_for('delete_collection', collection_name=collection) }}')" title="Delete">&#128465;</i>
+                            </div>
+                        </li>
+            
+                        
+                    <div id="modal-{{ collection }}" class="modal">
+                        <div class="modal-content">
+                            <button class="close" style="padding: 6px 10px; margin-top: -2px;" onclick="closeModal('{{ collection }}')">Close</button>
+                            <form method="POST" action="{{ url_for('export_collection', collection_name=collection) }}">
+                                <input type="hidden" name="coll_name" value="{{ collection }}">
+
+                                <p><label for="export_password" style="font-size: 18px;" >Export Vault</label></p>
+                                <input type="password" id="password-{{ collection }}" name="export_password" placeholder="Enter the password for the new file to be exported" required>
+
+                                <button type="submit" style="margin-top: 40px; border: 1.5px solid #ccc;" class="export-button">Export</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No collection found.</p>
+            {% endif %}
+            
+            <a href="{{ url_for('home') }}" class="back-button" id="animated">Back to Home</a>
+        </div>
+
+      
+    </body>
+
+</html>

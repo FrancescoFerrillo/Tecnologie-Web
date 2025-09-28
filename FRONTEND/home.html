@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Home</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+        <script src="{{ url_for('static', filename='js/home.js') }}"></script>
+    </head>
+
+
+    <body>
+
+        <div class="container">
+
+            <header class="header">
+                 
+                <a href="{{ url_for('home') }}">
+                    <img src="{{ url_for('static', filename='images/Logo.png') }}" alt="Passbox" class="logo">
+                <a>
+
+                <nav class="navbar">
+                    <menu>
+                    <li class="home-button"> <a href="{{ url_for('home') }}" style="--i:1">Home</a> </li>
+                    <li><a href="{{ url_for('vaults_list') }}" style="--i:2">Vaults</a></li>
+                    <li><a onclick="openModal('feedback')" style="--i:3;">Send us a feedback</a></li>
+                    </menu>
+                </nav>
+
+                <div>
+                    <a class="open-profile-button" onclick="openModal('profile')">Profile</a>
+                </div>
+
+                <div id="modal-profile" class="modal">
+                    <div class="modal-content">
+                        <p>PassBox Profile</p>
+                        <button class="close" onclick="closeModal('profile')">Close</button>
+                        <div class="profile-container">
+                            <form method="POST" action="{{ url_for('profile') }}" onsubmit="return validateSubmit('{{ url_for('profile') }}')">
+                                <p>
+                                    <label for="username">Username:</label>
+                                    <input type="text" id="username" name="username" value="{{ user['username'] }}" disabled>
+                                </p>
+
+                                <p>
+                                    <label for="email">Email:</label>
+                                    <input type="text" id="email" name="email" value="{{ user['email'] }}" disabled>
+                                </p>
+
+                                <p>
+                                    <label for="password">Password:</label>
+                                    <input type="password" id="password" name="password" value="" placeholder="Enter new password if you prefer" disabled>
+                                </p>
+
+                                <button type="button" id="toggle-button" class="toggle-button" onclick="toggleEditable()">Unlock</button>
+
+                                <div class="actions">
+                                    <button type="submit" id="submit-button">Save changes</button>
+                                </div>
+                            </form>
+                        </div>
+                        <a href="{{ url_for('logout') }}" class="logout" >Logout</a>
+                    </div>
+                </div>
+        
+            </header>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="flash-message">
+                        {% for message in messages %}
+                            {{ message }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}   
+
+        
+            <section class="home">
+                <div class="home-content">
+                    <h1 style="color: whitesmoke;" >PassBox</h1> <br>
+                    <h3>With PassBox you can: <span class="multiple-text"></span></h3>
+                    <p style="margin-top:-20px; font-size: 20px;">Web application designed for secure management of passwords <br> and other sensitive information.</p>
+                </div>
+
+                <div class="home-img">
+                    <img src="{{ url_for("static", filename="images/1.png") }}" class="img-res1" alt="img" />
+                </div>
+                
+            </section>
+
+
+            <div class="grid reverse home-img">
+                <div class="col-50">
+                    <img src="{{ url_for("static", filename="images/2.png") }}" class="img-res1" style="width: 45%; height: 95%"/>
+                </div>
+
+                <div class="col-50 home-content home-img2">
+                    <h3 style="margin-top: 40px; color: whitesmoke;">Make your accounts safe with: <span class="multiple-text2"></span></h3>
+                    <p style="font-size: 18px;">With <span style="color: #377eca;">PassBox</span>, managing your personal information has never been easier! <br> Create your vaults and discover all the benefits.</p>
+                </div>
+            </div>
+
+
+            <div  class="cover" style="background: url('{{ url_for("static", filename="images/4.jpg") }}') no-repeat center;" id="cover-section">
+                <h1>Welcome to PassBox</h1>
+                <p>Save your credentials securely</p>
+                <a onclick="openModal('donate')" class="button">Supports PassBox</a>
+            </div>
+                
+
+            <div id="modal-donate" class="modal">
+                <div class="modal-content">
+                    <button class="close" style="padding: 6px 10px; margin-top: -2px;" onclick="closeModal('donate')">Close</button>
+                    <form action="{{ url_for('donate') }}" method="post">
+                        <label for="amount">Enter amount</label>
+                        <input type="text" id="amount" name="amount" placeholder="Inserisci l'importo" required>
+                        <button type="submit" class="save-button">Pay</button>
+                    </form>
+                </div>
+            </div>
+
+
+            <div id="modal-feedback" class="modal">
+                <div class="modal-content">
+                    <button class="close" style="padding: 6px 10px; margin-top: -2px;" onclick="closeModal('feedback')">Close</button>
+                    <form action="{{ url_for('submit_feedback') }}" method="POST">
+                        <label for="feedback">Leave your Feedback:</label>
+                        <textarea id="feedback" name="feedback" rows="8" placeholder="Write your message here..." required></textarea>
+                        <button type="submit" class="save-button">Send</button>
+                    </form>
+                </div>
+            </div>
+            
+
+            <div class="footer">
+                2025 PassBox.       
+                <a href="https://github.com/Francesco-Ferrillo/PassBox">
+                    <img class="github-logo" src="static/images/github_logo.jpg" href=alt="GitHub Logo">
+                </a>
+            </div>
+
+            <script src="https://unpkg.com/typed.js@2.1.0/dist/typed.umd.js"></script>
+            <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    var typed = new Typed(".multiple-text", {
+                        strings: ["Saving your Credentials", "Make your passwords safe", "Keep all your vaults under control"],
+                        typeSpeed: 100,
+                        backSpeed: 100,
+                        backDelay: 1000,
+                        loop: true
+                    });
+                });
+
+                document.addEventListener("DOMContentLoaded", function() {
+                    var typed = new Typed(".multiple-text2", {
+                        strings: ["PassBox"],
+                        typeSpeed: 100,
+                        backSpeed: 100,
+                        backDelay: 1000,
+                        loop: true
+                    });
+                });
+            </script>
+    
+        </div>
+
+    </body>
+
+
+</html>

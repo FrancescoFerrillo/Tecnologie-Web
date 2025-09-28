@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>2FA confirmation</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/confirm_2fa.css') }}">
+        <script src="{{ url_for('static', filename='js/confirm_2fa.js') }}"></script>
+    </head>
+
+
+    <body>
+
+        <div class="background-image" style="background: url('{{ url_for("static", filename="images/7.jpg") }}') no-repeat center;"></div>
+
+
+        <div class="container" id="popup-container">
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="flash-message">
+                        {% for message in messages %}
+                            {{ message }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}   
+
+
+            <h1>Confirmation of Two-Factor Authentication</h1>
+            <p>Scan the QR code with an authentication app such as Google Authenticator or Authy.</p>
+            <div class="qr-container">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?data={{ qr_url|urlencode }}&size=150x150" alt="QR Code">
+            </div>
+            <form method="POST">
+                <input type="text" name="code" id="code" style="margin-top: 20px" placeholder="OTP Code" required>
+                <button type="submit">Confirm</button>
+            </form>
+        </div>
+        
+    </body>
+
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Vault View</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/vault_view.css') }}">
+        <script src="{{ url_for('static', filename='js/vault_view.js') }}"></script>
+    </head>
+
+
+    <body>
+
+        <div class="background-image" style="background: url('{{ url_for("static", filename="images/5.jpg") }}') no-repeat center;"></div>
+
+        <div class="top-bar">
+            <div style="background: url('{{ url_for("static", filename="images/logo.png") }}') no-repeat center; width: 100%; height: 100%; background-size: 10%; filter: brightness(1.2) saturate(1.2);"></div>
+        </div>
+        
+
+        <div class="container">
+            <h1>{{ collection_name.split('_', 1)[1] }}</h1>
+
+            <div class="search-bar" style="margin-bottom: 20px;">
+                <input type="text" id="search" placeholder="Search by title, username, email or category" oninput="filterCredentials()">
+
+                <div class="collecton_add">
+                    <i onclick="openModal('add')" title="Add new credentials">&#43;</i>
+                </div>
+            </div>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="flash-message">
+                        {% for message in messages %}
+                            {{ message }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %} 
+
+            <div id="modal-add" class="modal">
+                <div class="modal-content">
+                    <p style="color: gray;">Enter information: </p>
+                    <button class="close" style="padding: 3px 7px; margin-top: 20px; margin-right: 20px;" onclick="closeModal('add')">Close</button>
+                    <form method="POST" action="{{ url_for('add_credentials', collection_name=collection_name) }}">
+                        <p><input type="text" name="title" placeholder="Title" required></p>
+                        <p><input type="text" name="username" placeholder="Username"></p>
+                        <p><input type="text" name="email" placeholder="Email"></p>
+                        <p><input type="password" name="password" id="password-add" placeholder="Password" required></p>
+                        <button type="button" class="toggle-button" style="display: inline-block;" onclick="suggestPassword('add')">Generate Secure Password</button>
+                        <p><input type="text" name="url" placeholder="URL"></p>
+                        <p><input type="text" name="category" placeholder="Categoria"></p>
+                        <button type="submit" class="save-button">Save</button>
+                    </form>
+                </div>
+            </div>
+
+
+
+            <h4>Credentials list ({{ credentials_count }}):</h4>
+
+            {% if credentials %}
+                <ul>
+                    {% for credential in credentials %}
+
+
+                        <li class="credential-item" >
+                            <span class="title">{{ credential['title'] }}</span>
+                            <div style="display: none;">
+                                <span class="username">{{ credential['username'] }}</span>
+                                <span class="email">{{ credential['email'] }}</span>
+                                <span class="category">{{ credential['category'] }}</span>
+                            </div>
+                            <div class="actions">
+                                <i class="eye" onclick="openModal('{{ credential['_id'] }}')" title="Visualizza">&#128065;</i>
+                                <i class="2fa-key" onclick="openModal('2fa-{{ credential['_id'] }}')" title="Gestione 2FA">&#128273;</i>
+                                <i class="calendar"  id="calendar-icon-{{ credential['_id'] }}" onclick="openModal('expire-{{ credential['_id'] }}')" title="Set Due Date"
+                                onmouseover="showExpirationWarning('{{ credential['_id'] }}')" onmouseout="hideExpirationWarning('{{ credential['_id'] }}')"> &#128197;  </i>
+                                <i class="delete" onclick="confirmDelete('{{ url_for('delete_credential', collection_name=collection_name, cred_id=credential['_id']) }}')" title="Delete">&#128465;</i>
+                            </div>
+                        </li>
+
+
+                        <div id="modal-{{ credential['_id'] }}" class="modal">
+                            <div class="modal-content">
+                                <button class="close" style="margin-top: -2px;" onclick="closeModal('{{ credential['_id'] }}')">Close</button>
+                                
+                                <form method="POST" action="{{ url_for('modify_credential', collection_name=collection_name, cred_id=credential['_id']) }}" onsubmit="return validateSubmit('{{ credential['_id'] }}', '{{ url_for('modify_credential', collection_name=collection_name, cred_id=credential['_id']) }}')">
+                                    <input type="hidden" name="cred_id" value="{{ credential['_id'] }}">
+
+                                    <p><label for="title"> Title:</label>
+                                    <input type="text" id="title-{{ credential['_id'] }}" name="title" value="{{ credential['title'] }}" disabled required></p>
+
+                                    <p><label for="username">Username:</label>
+                                    <input type="text" id="username-{{ credential['_id'] }}" name="username" value="{{ credential['username'] }}" disabled></p>
+                                    <button type="button" style="margin-top: -5px" id="copy-button-{{ credential['_id'] }}" class="copy-button" onclick="onclick="navigator.clipboard.writeText('{{ credential['username'] }}')">Copy</button>
+
+                                    <p><label for="email">Email:</label>
+                                    <input type="text" id="email-{{ credential['_id'] }}" name="email" value="{{ credential['email'] }}" disabled></p>
+                                    <button type="button" style="margin-top: -5px" id="copy-button-{{ credential['_id'] }}" class="copy-button" onclick="navigator.clipboard.writeText('{{ credential['email'] }}')">Copy</button>
+
+                                    <p><label for="password">Password:</label>
+                                    <input type="password" id="password-{{ credential['_id'] }}" name="password" value="********" disabled required> </p>
+                                    <button type="button" id="toggle-button-password-{{ credential['_id'] }}" class="toggle-button" onclick="togglePassword('{{ credential['_id'] }}', '{{ credential['password'] }}')">Show</button>
+                                    <button type="button" style="display: inline-block;margin-top: -5px;" id="copy-button-{{ credential['_id'] }}" class="copy-button" onclick="copyPassword('{{ credential['_id'] }}', '{{ credential['password'] }}')">Copy</button>
+                                    <button type="button" class="toggle-button" style="display: inline-block;margin-top: -5px;" onclick="suggestPassword('{{ credential['_id'] }}')">Genera Password Sicura</button>
+
+                                    <p><label for="url">Url:</label>
+                                    <input type="text" id="url-{{ credential['_id'] }}" name="url" value="{{ credential['url'] }}" disabled></p>
+                                    <button type="button" style="margin-top: -5px" id="copy-button-{{ credential['_id'] }}" class="copy-button" onclick="navigator.clipboard.writeText('{{ credential['url'] }}')">Copy</button>
+
+                                    <p><label for="category">Category:</label>
+                                    <input type="text" id="category-{{ credential['_id'] }}" name="category" value="{{ credential['category'] }}" disabled></p>
+
+                                    <button type="button"  id="lock-button-{{ credential['_id'] }}" class="lock-button" onclick="toggleEditable('{{ credential['_id'] }}')">Unlock</button>
+                                    <button type="submit" style="margin-top: 40px;" class="save-button">Save</button>
+                                </form>
+                            </div>
+                        </div>
+
+
+                        <div id="modal-expire-{{ credential['_id'] }}" class="modal">
+                            <div class="modal-content">
+                            <button class="close" style="padding: 3px 8px; margin-top: -2px;" onclick="closeModal('expire-{{ credential['_id'] }}')">Close</button>
+                                <form method="POST" action="{{ url_for('modify_credential', collection_name=collection_name, cred_id=credential['_id']) }}">
+                                    <label for="expiration-date-{{ credential['_id'] }}">Expiration Date:</label>
+                                    <input type="datetime-local" 
+                                        name="psw_due_date" 
+                                        id="expiration-date-{{ credential['_id'] }}" 
+                                        value="{{ credential['psw_due_date'] }}" 
+                                        oninput="updateExpirationDate('{{ credential['_id'] }}')">
+
+                                    <div id="expiration-{{ credential['_id'] }}" style="height: 3px;"></div>
+
+                                    <div id="expiration-warning-{{ credential['_id'] }}" style="color: red; display:none; margin-top:10px;">
+                                        The password has expired! Update the expiration date.
+                                    </div>
+
+                                    <button type="submit" class="save-button">Save</button>
+                                </form>
+                            </div>
+
+                            <script>
+                            document.addEventListener("DOMContentLoaded", function() {
+                                {% for cred in credentials %}
+                                    initializeExpirationWarnings("{{ cred['_id'] }}");
+                                {% endfor %}
+                            });
+                            </script>
+    
+                        </div>
+                
+
+                        <div id="modal-2fa-{{ credential['_id'] }}" class="modal">
+                            <div class="modal-content">
+                                <button class="close" style="padding: 4px 8px; margin-top: -2px;" onclick="closeModal('2fa-{{ credential['_id'] }}')">Close</button>
+                                <form method="POST">
+                                    <p><label for="seed">Seed:</label>
+                                        <input type="password" id="seed-{{ credential['_id'] }}" name="2fa_seed" value="********" required> </p>
+                                        <button type="button" id="toggle-button-seed-{{ credential['_id'] }}" class="toggle-button" onclick="toggleSeed('{{ credential['_id'] }}', '{{ credential['2fa_seed'] }}')">Show</button>
+
+                                    <div class="otp-container">
+
+                                        <div class="otp-info">
+                                            <p>OTP: <span id="otp-{{ credential['_id'] }}">---</span></p>
+                                            <p>Remaining time: <span id="timer-{{ credential['_id'] }}">---</span></p>
+                                        </div>
+                                        
+                                        <div class="qr-container">
+                                            <img id="qr-code-{{ credential['_id'] }}" src="" alt="QR Code" style="display:none; width: 150px;">
+                                        </div>
+                                    </div>
+                                    <button class="save-button" type="button" onclick="fetchOTP('{{ credential['_id'] }}', '{{ collection_name }}')">Generate OTP</button>
+                                </form>
+                            </div>
+                        </div>
+
+
+                    {% endfor %}
+
+                </ul>
+
+            {% else %}
+                <p><label style="font-size: 15px;">No credential found</label></p>
+            {% endif %}
+
+
+            <a href="{{ url_for('vaults_list') }}" class="back-button" >Back to vaults list</a>
+            <a href="{{ url_for('home') }}" class="back-button">Back to Home</a>
+
+            
+        </div>
+
+        <div class="container2">
+            <h2>Secure Password Generator</h2>
+            <p>Choose the difficulty level:</p>
+            <button style="color: greenyellow;" onclick="generatePassword('easy')">Easy</button>
+            <button style="color: yellow;" onclick="generatePassword('medium')">Medium</button>
+            <button style="color: red;" onclick="generatePassword('hard')">Hard</button>
+            <div id="output"></div>
+        </div>
+        
+    </body>
+
+</html>

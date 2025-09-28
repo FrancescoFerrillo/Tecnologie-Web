@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Registration</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
+        <script src="{{ url_for('static', filename='js/register.js') }}"></script>
+    </head>
+
+
+    <body>
+
+     
+
+
+        <div class="background-image" style="background: url('{{ url_for("static", filename="images/5.jpg") }}') no-repeat center;"></div>
+
+        <div class="container" id="popup-container">
+
+            
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="flash-message">
+                        {% for message in messages %}
+                            {{ message }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %} 
+
+
+            <h1>Registration</h1>
+
+            <form method="POST">
+                <label for="username">Username:</label>
+                <input type="text" name="username" id="username" placeholder="Username" required>
+
+                <label for="email">Email:</label>
+                <input type="email" name="email" id="email" placeholder="Email" required>
+
+                <label for="password">Password:</label>
+                <input type="password" name="password" class="password" placeholder="Password" required>
+                <input type="password" name="password_confirm" class="password" placeholder="Confirm Password" required>
+
+                <div class="password-actions">
+                    <button type="button" onclick="suggestPassword('password')">Generate Secure Password</button>
+                    <button type="button" onclick="togglePasswordVisibility('password')">Show/Hide Password</button>
+                </div>
+
+                <button type="submit">Registrati</button>
+            </form>
+        </div>
+
+    </body>
+
+</html>
